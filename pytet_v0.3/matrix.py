@@ -2,10 +2,14 @@ class MatrixError(Exception):
     pass
 
 class Matrix:
-    count = 0
+    nAlloc = 0
+    nFree = 0
 
-    def get_count(self):
-        return Matrix.count
+    def get_nAlloc(self):
+        return Matrix.nAlloc
+
+    def get_nFree(self):
+        return Matrix.nFree
     
     def get_dy(self):
         return self._dy
@@ -16,15 +20,19 @@ class Matrix:
     def get_array(self):
         return self._array
 
+    def __del__(self):
+        Matrix.nFree += 1
+
     def __alloc(self, cy, cx):
         if cy < 0 or cx < 0:
             raise MatrixError("wrong matrix size")
         self._dy = cy
         self._dx = cx
         self._array = [[0]*self._dx for i in range(self._dy)]
+        #print(self.__array)
+        Matrix.nAlloc += 1
         
     def __init__(self, arg):
-        Matrix.count += 1
         if isinstance(arg, list):
             array = arg
             cy = len(array)
@@ -50,6 +58,7 @@ class Matrix:
     def __str__(self):
         return 'Matrix(%d, %d)' % (self._dy, self._dx)
 
+
     def print(self):
         print('[', end=' ')
         for y in range(self._dy-1):
@@ -57,13 +66,15 @@ class Matrix:
             for x in range(self._dx-1):
                 print(self._array[y][x], end=', ')
             print(self._array[y][self._dx-1], end=' ')
-            print('],') # , end=' ')
+            print('],', end=' ')
         print('[', end=' ')
         for x in range(self._dx-1):
             print(self._array[self._dy-1][x], end=', ')
         print(self._array[self._dy-1][self._dx-1], end=' ')
-        print(']') # , end=' ')
+        print(']', end=' ')
         print(']')        
+
+
 
     def clip(self, top, left, bottom, right):
         cy = bottom - top
@@ -86,6 +97,7 @@ class Matrix:
                     self._array[top+y][left+x] = other._array[y][x]
                 else:
                     raise MatrixError("invalid matrix range")
+
 
     def __add__(self, other):
         if (self._dx != other._dx) or (self._dy != other._dy):
